@@ -14,7 +14,7 @@ A dawn/dusk pond pump controller for the cheap yellow display (CYD), compiled in
    - Buzzer: GPIO26
    - Backlight: GPIO21
    - 
-   - This is configured to get the temperature from a locall WeeWX webpage at weezx.local/weewx
+   - This is configured to get the temperature from a local WeeWX webpage at weezx.local/weewx
    - You'll probably need to change that!
 
    - Included is the User_Setup.h file needed to configure the TFT_eSPI library for use with the CYD
