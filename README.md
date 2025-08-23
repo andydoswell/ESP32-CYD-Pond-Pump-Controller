@@ -1,5 +1,5 @@
 # ESP32-CYD-Pond-Pump-Controller
-A dawn/dusk pond pump controller for the cheap yellow display (CYD)
+A dawn/dusk pond pump controller for the cheap yellow display (CYD), compiled in Arduino IDE 2.3.6
   Features:
    - NTP time (UTC, with UK DST adjustment)
    - Sun arc & sun display elevation (day)
