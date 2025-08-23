@@ -1,5 +1,5 @@
 # ESP32-CYD-Pond-Pump-Controller
-A dawn/dusk pond pump controller for the cheap yellow display
+A dawn/dusk pond pump controller for the cheap yellow display (CYD)
   Features:
    - NTP time (UTC, with UK DST adjustment)
    - Sun arc & sun display elevation (day)
@@ -16,4 +16,5 @@ A dawn/dusk pond pump controller for the cheap yellow display
    - 
    - This is configured to get the temperature from a locall WeeWX webpage at weezx.local/weewx
    - You'll probably need to change that!
-   - 
+
+   - Included is the User_Setup.h file needed to configure the TFT_eSPI library for use with the CYD
