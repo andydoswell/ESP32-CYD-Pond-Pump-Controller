@@ -30,8 +30,8 @@
 #include <math.h>
 
 // ================== WiFi ==================
-const char* ssid     = "SKYCE521_Ext";
-const char* password = "PNTWTPPFVC";
+const char* ssid     = "YOUR SSID";
+const char* password = "YOURPASSWORD";
 
 // ================== Display ==================
 TFT_eSPI tft = TFT_eSPI();
@@ -64,8 +64,8 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // UTC
 
 // UK location
-float latitude = 51.8880531;
-float longitude = -2.0434736;
+float latitude = 50.0; // Change for your location
+float longitude = -1.0;
 
 // Sunrise/sunset
 int sunriseMinutesUTC = 360;
