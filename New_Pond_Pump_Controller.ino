@@ -1,6 +1,6 @@
 /*
   Pond Pump Controller
-  ESP32 + TFT_eSPI + XPT2046
+  ESP32 + TFT_eSPI + XPT2046 - "Cheap Yellow Display" ESP32-232S028 
   -----------------------------------
   Version: 1.1
   Features:
