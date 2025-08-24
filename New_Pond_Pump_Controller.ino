@@ -1,18 +1,18 @@
 /*
   Pond Pump Controller
-  ESP32 + TFT_eSPI + XPT2046 - Cheap yellow display ESP32-2432SO28
-  More details at Andydoz.blogspot.com 
+  ESP32 + TFT_eSPI + XPT2046
   -----------------------------------
-  Version: 1.0
+  Version: 1.1
+  Features:
    - NTP time (UTC, with UK DST adjustment)
-   - Sun arc & sun display elevation (day)
-   - Moon & stars display (night)
+   - Sun arc & sun elevation (day)
+   - Central crescent moon & stars (night)
    - Local temperature via WeeWX
    - Frost warning banner (<3 °C disables pumps)
    - Pump modes: ON / OFF / AUTO / AUTO+1h
    - Pump mode toggle via touch (raw X)
    - Pump mode saved/restored in NVS
-   - Display: 320x240, landscape mode
+   - Display: 320x240, rotation=3
    - Relays: GPIO22 (Pump1), GPIO27 (Pump2)
    - Buzzer: GPIO26
    - Backlight: GPIO21
@@ -30,8 +30,8 @@
 #include <math.h>
 
 // ================== WiFi ==================
-const char* ssid     = "YOUR SSID";
-const char* password = "YOURPASSWORD";
+const char* ssid     = "SKYCE521_Ext";
+const char* password = "PNTWTPPFVC";
 
 // ================== Display ==================
 TFT_eSPI tft = TFT_eSPI();
@@ -64,8 +64,8 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // UTC
 
 // UK location
-float latitude = 50.0; // Change for your location
-float longitude = -1.0;
+float latitude = 51.8880531;
+float longitude = -2.0434736;
 
 // Sunrise/sunset
 int sunriseMinutesUTC = 360;
@@ -123,7 +123,7 @@ Preferences prefs;
 int starX[STAR_COUNT], starY[STAR_COUNT];
 bool starsDrawn = false;
 
-// ================== Declarations ==================
+// ================== Prototypes ==================
 bool isUK_DST(int day, int month, int year);
 void calculateSunTimes(int day, int month, int year);
 void drawSunArc();
@@ -293,18 +293,34 @@ void loop() {
     drawPumpRects(p1On, p2On);
   }
 
-  // Touch handling
+  // Touch handling (FIXED to update immediately)
   if (ts.touched() && (millis() - lastTouchMs > touchDebounceMs)) {
     lastTouchMs = millis();
     TS_Point p = ts.getPoint();
-    if (p.x > 2400) cycleMode(0);
-    else if (p.x < 2300) cycleMode(1);
+
+    bool changed = false;
+    if (p.x > 2400) { cycleMode(0); changed = true; }
+    else if (p.x < 2300) { cycleMode(1); changed = true; }
+
+    if (changed) {
+      unsigned long e = timeClient.getEpochTime();
+      int nowUTCmin = (e/60) % 1440;
+      bool isDayNow = (nowUTCmin >= sunriseMinutesUTC && nowUTCmin < sunsetMinutesUTC);
+
+      bool p1On = shouldPumpBeOn(pumpMode[0], isDayNow, nowUTCmin, sunsetMinutesUTC, currentTemperature);
+      bool p2On = shouldPumpBeOn(pumpMode[1], isDayNow, nowUTCmin, sunsetMinutesUTC, currentTemperature);
+
+      digitalWrite(RELAY1, p1On ? HIGH : LOW);
+      digitalWrite(RELAY2, p2On ? HIGH : LOW);
+
+            drawPumpRects(p1On, p2On);
+    }
   }
 
   delay(25);
 }
 
-// ================== Drawing ==================
+// ================== Drawing & Support Functions ==================
 void drawSunArc() {
   for (int angleDeg = 0; angleDeg <= 180; angleDeg += 2) {
     float rad = angleDeg * DEG_TO_RAD;
@@ -315,7 +331,9 @@ void drawSunArc() {
     tft.drawLine(x0, y0, x1, y1, TFT_WHITE);
   }
 }
+
 void drawDegreeSymbol(int x, int y, uint16_t color) { tft.drawCircle(x, y, 1, color); }
+
 void drawStars() {
   for (int i=0;i<STAR_COUNT;i++) {
     starX[i] = random(0, SCREEN_W);
@@ -324,6 +342,7 @@ void drawStars() {
   }
   starsDrawn = true;
 }
+
 void updateSunDisplay(float sunElevation, int sunriseMinutesLocal, int sunsetMinutesLocal,
                       int nowMinutesLocal, int nowSeconds, bool isDaytime) {
   if (prevSunX != -1) tft.fillCircle(prevSunX, prevSunY, 12, isDaytime ? DAY_BG : NIGHT_BG);
@@ -379,16 +398,18 @@ void updateSunDisplay(float sunElevation, int sunriseMinutesLocal, int sunsetMin
     }
   }
 }
+
 void drawPumpRects(bool pumpsOn1, bool pumpsOn2) {
   tft.fillRect(rect1X, rectY, rectWidth, rectHeight, pumpsOn1 ? TFT_GREEN : TFT_RED);
+  tft.setTextColor(TFT_WHITE); tft.setTextSize(1);
   tft.setCursor(rect1X + 10, rectY + 6);  tft.print("PUMP 1");
   tft.setCursor(rect1X + 10, rectY + 18); tft.print(modeName(pumpMode[0]));
+
   tft.fillRect(rect2X, rectY, rectWidth, rectHeight, pumpsOn2 ? TFT_GREEN : TFT_RED);
   tft.setCursor(rect2X + 10, rectY + 6);  tft.print("PUMP 2");
   tft.setCursor(rect2X + 10, rectY + 18); tft.print(modeName(pumpMode[1]));
 }
 
-// ================== Sunrise/Sunset & DST ==================
 void calculateSunTimes(int day, int month, int year) {
   int N = day;
   int dim[] = {31,28,31,30,31,30,31,31,30,31,30,31};
@@ -406,6 +427,7 @@ void calculateSunTimes(int day, int month, int year) {
   if (sunriseMinutesUTC < 0) sunriseMinutesUTC += 1440;
   if (sunsetMinutesUTC  < 0) sunsetMinutesUTC  += 1440;
 }
+
 bool isUK_DST(int day, int month, int year) {
   if (month < 3 || month > 10) return false;
   if (month > 3 && month < 10) return true;
@@ -430,7 +452,6 @@ bool isUK_DST(int day, int month, int year) {
   return false;
 }
 
-// ================== Temperature ==================
 void fetchTemperature() {
   if (WiFi.status() != WL_CONNECTED) return;
   HTTPClient http;
