@@ -45,8 +45,8 @@ using File = fs::File;
 #include <math.h>
 
 // ================== WiFi ==================
-const char* ssid = "SKYCE521_Ext";
-const char* password = "PNTWTPPFVC";
+const char* ssid = "SSID";
+const char* password = "PASSWORD";
 
 // ================== Display ==================
 TFT_eSPI tft = TFT_eSPI();
