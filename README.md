@@ -13,7 +13,7 @@ A dawn/dusk pond pump controller for the cheap yellow display (CYD), compiled in
    - Relays: GPIO22 (Pump1), GPIO27 (Pump2)
    - Buzzer: GPIO26
    - Backlight: GPIO21
-   - 
+   - mDNS for pondpump.local lookup
    - This is configured to get the temperature from a local WeeWX webpage at weezx.local/weewx
    - You'll probably need to change that!
 
