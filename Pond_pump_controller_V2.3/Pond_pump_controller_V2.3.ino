@@ -22,6 +22,8 @@
    - Backlight: GPIO21
    - Web UI: status + pump mode control
    - Temp failure detection (TFT + Web warning)
+   - mDNS for pondpump.local lookup
+   - Backlight dimming (day/night) to prolong display life.
 */
 
 #include <WiFi.h>
@@ -45,8 +47,8 @@ using File = fs::File;
 #include <math.h>
 
 // ================== WiFi ==================
-const char* ssid = "SSID";
-const char* password = "PASSWORD";
+const char* ssid = "SKYCE521_Ext";
+const char* password = "PNTWTPPFVC";
 
 // ================== Display ==================
 TFT_eSPI tft = TFT_eSPI();
@@ -60,6 +62,10 @@ const int BUZZER_PIN = 26;
 // UI colors
 #define DAY_BG TFT_BLUE
 #define NIGHT_BG TFT_BLACK
+
+//Display backlight settings
+const int displayDay = 180;
+const int displayNight = 15;
 
 // Screen size
 const int SCREEN_W = 320;
@@ -92,7 +98,7 @@ float currentTemperature = -100.0;
 unsigned long lastTempUpdate = 0;
 const char* tempURL = "http://weewx.local/weewx/";
 const unsigned long tempInterval = 600000UL;  // 10 min
-bool tempValid = true;                        
+bool tempValid = true;
 
 // ================== Pump Modes ==================
 enum PumpMode { MODE_ON = 1,
@@ -300,7 +306,6 @@ void setup() {
   prefs.begin("pump", false);
   loadPumpModes();
   pinMode(BL_PIN, OUTPUT);
-  digitalWrite(BL_PIN, HIGH);
   pinMode(RELAY1, OUTPUT);
   pinMode(RELAY2, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
@@ -509,7 +514,16 @@ void updateSunDisplay(float sunEl, int sr, int ss, int nowM, int nowS, bool day)
       tft.print(nt);
     }
   }
+
+  // Dim display at night
+
+  if (day) {
+    analogWrite(BL_PIN, displayDay);
+  } else {
+    analogWrite(BL_PIN, displayNight);
+  }
 }
+
 void drawPumpRects(bool p1, bool p2) {
   tft.fillRect(rect1X, rectY, rectWidth, rectHeight, p1 ? TFT_GREEN : TFT_RED);
   tft.setTextColor(TFT_WHITE);
