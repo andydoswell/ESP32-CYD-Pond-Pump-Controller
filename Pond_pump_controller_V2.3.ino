@@ -6,7 +6,7 @@
 
   A.G.Doswell Aug 2025
   --------------------------------------
-  Version: 2.3
+  Version: 2.3.1
   Features:
    - NTP time (UTC, with UK DST adjustment)
    - Sun arc & sun elevation (day)
@@ -23,6 +23,8 @@
    - Web UI: status + pump mode control
    - Temp failure detection (TFT + Web warning)
    - mDNS for pondpump.local lookup
+
+   bug fix - shadow of moon left behind in daytime view
 */
 
 #include <WiFi.h>
@@ -471,6 +473,7 @@ void updateSunDisplay(float sunEl, int sr, int ss, int nowM, int nowS, bool day)
     float r = ang * DEG_TO_RAD;
     int x = centerX - radius * cos(r), y = centerY - radius * sin(r);
     tft.fillCircle(x, y, 8, TFT_YELLOW);
+    tft.fillCircle(centerX+ 3, (centerY-radius/2), 10, DAY_BG);
     prevSunX = x;
     prevSunY = y;
     starsDrawn = false;
