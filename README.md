@@ -18,3 +18,4 @@ A dawn/dusk pond pump controller for the cheap yellow display (CYD), compiled in
    - You'll probably need to change that!
 
    - Included is the User_Setup.h file needed to configure the TFT_eSPI library for use with the CYD
+   - 3D printer stl fies are included for a case, back and spacer washers
